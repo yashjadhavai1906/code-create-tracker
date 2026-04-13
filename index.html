@@ -1461,10 +1461,15 @@ function empty(title, desc) {
 // AUTH
 // ────────────────────────────────────────────────────────
 const ROLES = {
-  ops:        { label: 'Operations',  password: 'ops@2026',   tabs: ['ops', 'dsa', 'queries'] },
-  it:         { label: 'IT Team',     password: 'it@2026',    tabs: ['connector', 'queries'] },
-  admin:      { label: 'Admin',       password: 'admin@2026', tabs: ['ops', 'dsa', 'connector', 'queries', 'completed'] }
+  ops:   { label: 'Operations', hash: '83a6e805fd05362e5a3e1d81abba20264f0b9192ce01550805462171c8613c37', tabs: ['ops', 'dsa', 'queries'] },
+  it:    { label: 'IT Team',    hash: '3289f7e6fe67aeb1facfe1e6034ba6c07fd71b6609eef89f42a68857919800bd', tabs: ['connector', 'queries'] },
+  admin: { label: 'Admin',      hash: '8b3ce0c3977ee6e8d53efeb1fb5b4f82bfb85e44b706c4eded197bd78875da67', tabs: ['ops', 'dsa', 'connector', 'queries', 'completed'] }
 };
+
+async function hashPass(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
 let currentRole = null;
 
@@ -1473,7 +1478,8 @@ async function doLogin() {
   const pass = document.getElementById('login-pass').value;
   const role = ROLES[user];
   const err  = document.getElementById('login-error');
-  if (!role || role.password !== pass) {
+  const hashed = await hashPass(pass);
+  if (!role || role.hash !== hashed) {
     err.classList.add('show');
     document.getElementById('login-pass').value = '';
     return;
